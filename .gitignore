@@ -40,10 +40,12 @@ Thumbs.db
 *.exe
 *.dll
 *.zip
-!vendor/**/7ZIP-ZS-LICENSE.txt
-# 放行 ZipForge 运行时必需的 7-Zip-ZS 引擎二进制（7z.dll / 7z.exe）
-!vendor/**/engine-x64/7z.dll
-!vendor/**/engine-x64/7z.exe
+# 放行 ZipForge 运行时必需的 7-Zip-ZS 引擎二进制
+# 注意：gitignore 中「含斜杠的模式」是相对 .gitignore 所在目录(仓库根)锚定的，
+# 必须用 **/ 前缀才能匹配 zipforge/vendor/engine-x64/ 这类子目录路径
+!**/7ZIP-ZS-LICENSE.txt
+!**/engine-x64/7z.dll
+!**/engine-x64/7z.exe
 
 # Local secrets
 .env
