@@ -41,6 +41,9 @@ Thumbs.db
 *.dll
 *.zip
 !vendor/**/7ZIP-ZS-LICENSE.txt
+# 放行 ZipForge 运行时必需的 7-Zip-ZS 引擎二进制（7z.dll / 7z.exe）
+!vendor/**/engine-x64/7z.dll
+!vendor/**/engine-x64/7z.exe
 
 # Local secrets
 .env
