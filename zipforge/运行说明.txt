@@ -1,0 +1,134 @@
+ZipForge — 无广告 · 本地优先 · 功能向 7-Zip 看齐
+====================================================
+
+一句话定位
+----------
+一个纯本地、无广告、面向个人使用的压缩管理软件。压缩内核直接复用开源项目
+mcmilk/7-Zip-zstd（7z 引擎超集），并整合 Zstandard / Brotli / LZ4 / LZ5 等官方
+7-Zip 没有的编解码器，因此能力覆盖并超越官方 7-Zip。GUI 参考 PeaZip（双栏文件
+管理）与 NanaZip（现代 Windows 交互）自行实现。
+
+本软件不联网、不收集任何数据、不推送任何广告。
+
+
+如何运行
+--------
+方式 A（已打包 exe，推荐）：
+    双击 dist\ZipForge.exe 即可。无需安装 Python。
+
+方式 B（源码运行，需本机 Python 3.8+）：
+    在项目根目录执行：  python zipforge.py
+    （也可直接双击 zipforge.py，由系统 Python 打开）
+
+方式 C（重新打包 exe）：
+    运行 build_exe.bat，或在命令行执行：
+    python -m PyInstaller zipforge.py --onefile --windowed --name ZipForge \
+        --add-data "vendor/engine-x64;vendor/engine-x64"
+
+
+界面与功能
+----------
+- 左侧：本地磁盘 / 收藏夹目录树（懒加载子目录）
+- 右侧：当前目录文件列表；打开归档后切换为归档内容列表
+- 文件图标：本地文件与归档内文件都按扩展名显示**系统真实图标**
+  （从 Windows 取，不是统一灰块），文件夹显示系统文件夹图标
+- 顶部工具栏：打开 / 上级 / 压缩 / 解压 / 测试 / 设置
+- 打开归档（.7z/.zip/.rar/.tar/.gz/.xz/.zst/.br/.iso/.cab/.msi …）后可：
+  解压、测试完整性、右键仅解压所选条目
+
+右键菜单集成（在资源管理器里直接压缩）
+--------------------------------------
+- 启用：打开 ZipForge → 顶部「工具」菜单 → 「集成右键菜单（压缩入口）…」
+  提示成功后即可使用；想撤掉就点「移除右键菜单」。
+- 注册位置在 HKCU\Software\Classes 下（**每用户、不需要管理员权限**），
+  不需要时随时可以一键移除，不留残余。
+- 注册后资源管理器右键会多出：
+  · 选中一个或多个**文件** → 「用 ZipForge 压缩」
+  · 右键**文件夹** → 「用 ZipForge 压缩」
+  · 在文件夹**空白处**右键 → 「在此新建 ZipForge 归档」
+- 点击后会直接弹出「压缩设置」对话框，目标路径默认就在所选文件旁边。
+- 若注册后右键没看到：重启一下资源管理器（或注销/重新登录）让 Shell 缓存刷新。
+
+归档内浏览与打开的操作方式
+--------------------------
+- 在文件列表里**双击归档文件**（.zip/.rar/.7z…）→ 直接打开浏览，无需走"打开"按钮
+- 打开归档后：
+  · 双击**文件夹** → 进入该文件夹（状态栏显示当前所在路径）
+  · 双击**文件** → 提取该文件到临时目录并用系统默认程序打开
+    （临时目录位置：见下方"临时文件"说明）
+  · 点"上级" → 逐级返回；在归档根目录点"上级" → 回到本地文件视图
+  · 右键 → "解压所选到…" 可把选中的文件/文件夹解压到指定位置
+- 备注：压缩方法显示在"属性"列（如 m3:22 = RAR 的 m3 方法），🔒 表示已加密
+
+临时文件
+--------
+- 引擎工作目录：tools\_zftmp\（源码运行）；打包后位于系统临时目录下的解压目录内，
+  随程序退出自动清除
+- 双击归档内文件时，会先在上述目录下建一个 zf_open_xxxx 子目录完成提取；
+  程序启动时会自动清理 24 小时前的这类残留目录（不影响正在被打开的文件）
+
+- 在本地视图选中文件/文件夹后点“压缩”，可设置：
+  格式、压缩级别(0-9)、密码、加密文件头(仅7z)、分卷大小、固实、多线程
+
+可用压缩格式（均经实测可创建）
+--------------------------------
+7z / zip / zstd / brotli / lz4 / lz5 / xz / gzip / bzip2 / tar / wim
+注意 1：zstd/brotli/lz4/lz5 是 7-Zip-ZS 额外提供的“超集”格式，官方 7-Zip 不支持。
+注意 2：gzip / bzip2 / xz / zstd / brotli / lz4 / lz5 属于"单流格式"，
+        一次只能压缩单个文件，不能直接压缩文件夹（官方 7-Zip 同样如此）。
+        要压缩文件夹请用 7z / zip / tar；若确实要 .gz/.zst，可先打成 TAR 再压缩。
+
+只读解压（约 38 种，几乎覆盖常见归档）
+--------------------------------------
+rar / rar5 / cab / iso / arj / lzh / chm / msi / deb / rpm / cpio / xar / dmg …
+
+自检（不弹窗口，验证引擎与归档导航是否正常）
+-------------------------------------------
+    set ZF_TEST=1 && dist\ZipForge.exe
+  输出 [PASS] 表示引擎定位、zip 压缩/列表/解压、含子目录归档的浏览与单条目提取均正常。
+
+回归测试（源码模式）
+--------------------
+一键跑全部（推荐）：
+    python tools\run_all_tests.py        （或双击 tools\run_all_tests.bat）
+
+分层明细：
+    python tools\qa_engine_test.py      # 引擎解析层：-slt 字段切片/时间戳归一化（纯字符串）
+    python tools\qa_integration_test.py # GUI 逻辑层：列表渲染、名称在 #0、图标挂载与行高、
+                                        # 多选压缩源路径、归档下钻/返回（tk 桩，无显示器）
+    python tools\qa_gui_test.py         # 打开 zip -> 进子目录 -> 返回上级 -> 损坏文件报错
+    python tools\qa_rar_test.py         # 含显式目录条目的归档（7z 夹具 + 真实 rar）
+    python tools\qa_icon_test.py        # 系统图标真实像素 + 真实窗口渲染（需要真机 Tk）
+    python tools\qa_registry_test.py    # 右键菜单注册表写入/读回/清理（测完自动还原）
+
+界面截图（人工核对用，会短暂弹窗）：
+    python tools\shot_gui.py "<目录或归档路径>" 截图.png 7
+
+
+开源组件与许可证（合并来源）
+----------------------------
+- 7-Zip-ZS (mcmilk/7-Zip-zstd)：LGPL-2.1+ / BSD  — 压缩内核超集
+- 7-Zip (ip7z/7zip, Igor Pavlov)：LGPL-2.1+       — 原始压缩算法与格式
+- PeaZip (peazip)：LGPL-3.0                      — GUI/UX 设计参考
+- NanaZip (M2Team)：MIT                           — 现代 Windows 交互参考
+完整许可证文本见 vendor\engine-x64\7ZIP-ZS-LICENSE.txt
+
+合规说明：ZipForge 仅作为上述开源引擎的图形外壳，不修改其二进制行为；按 LGPL
+要求，本软件以“可执行文件 + 对应源码（本项目 src/）”形式分发，便于用户自由使用、
+研究、再分发。
+
+
+目录结构
+--------
+zipforge.py            启动器（含 ZF_TEST=1 无界面自检）
+src\sevenzip_engine.py 引擎层（调 7z.exe，列表/解压/压缩/进度解析、临时目录管理）
+src\gui.py             主界面（tkinter，零第三方依赖）
+src\fileicons.py       系统文件图标（SHGetFileInfo + 位图转 PhotoImage）
+src\shell_integration.py 资源管理器右键菜单注册/移除（HKCU，免管理员）
+src\formats.py         格式识别与路由
+src\config.py          本地偏好持久化（不存密码明文）
+tools\run_all_tests.py 一键回归测试入口（另有 run_all_tests.bat）
+tools\qa_*.py          各层回归测试（见上方"回归测试"）
+tools\shot_gui.py      界面截图工具（人工核对视觉效果）
+vendor\engine-x64\     7-Zip-ZS 引擎（7z.exe + 7z.dll），随软件分发
+dist\ZipForge.exe      打包产物（若已打包）
