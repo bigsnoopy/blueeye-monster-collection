@@ -23,6 +23,26 @@ import sys
 
 # (是否目录, 扩展名) -> tk.PhotoImage
 _cache = {}
+# 缓存所属的 Tk 根窗口（PhotoImage 与创建它的 Tk 解释器绑定）
+_cache_root = None
+
+
+def _sync_root(tk):
+    """确保缓存与当前 Tk 根窗口一致；返回当前根窗口（无根时 None）。
+
+    PhotoImage 属于创建它的那个 Tk 解释器。切换主题会销毁旧根窗口、重建新
+    根窗口，旧根上创建的图像在新解释器里**全部失效**，一旦再拿去填进列表
+    就会抛：
+        TclError: image "pyimageN" doesn't exist
+    （这正是「更换主题后启动失败」的成因。）
+    因此这里做一次廉价的自愈：发现根窗口换了就整体丢弃缓存。
+    """
+    global _cache_root
+    root = getattr(tk, "_default_root", None)
+    if root is not _cache_root:
+        _cache.clear()
+        _cache_root = root
+    return root
 
 
 def get_file_icon(ext, is_dir=False, large=False):
@@ -36,7 +56,7 @@ def get_file_icon(ext, is_dir=False, large=False):
         return None
     try:
         import tkinter as tk
-        if getattr(tk, "_default_root", None) is None:
+        if _sync_root(tk) is None:
             return None
         key = (bool(is_dir), (ext or "").lower(), bool(large))
         if key in _cache:
@@ -48,8 +68,34 @@ def get_file_icon(ext, is_dir=False, large=False):
         return None
 
 
+def is_alive(img):
+    """图像是否仍属于当前 Tk 解释器（能安全用于控件）。
+
+    切换主题/重建根窗口后，旧图像调用任何方法都会抛异常 —— 借此判定失效。
+    只对「看起来是 Tk 图像」的对象（有可调用的 width()）下结论；
+    其它对象（测试桩、自定义图标替身）无从判定，一律视为可用，避免误杀。
+    """
+    if img is None:
+        return False
+    width = getattr(img, "width", None)
+    if not callable(width):
+        return True
+    try:
+        width()
+        return True
+    except Exception:
+        return False
+
+
 def clear_cache():
+    """丢弃全部缓存（下次调用重新从系统取图标）。
+
+    切换主题、重建根窗口时必须调用；此外 get_file_icon() 检测到根窗口变化
+    时也会自动清理，双保险。
+    """
+    global _cache_root
     _cache.clear()
+    _cache_root = None
 
 
 # ---------------------------------------------------------------------------

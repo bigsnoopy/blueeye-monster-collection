@@ -382,7 +382,12 @@ class ZipForgeApp:
         """
         ext = "" if is_dir else _ext(name)
         icon = fileicons.get_file_icon(ext, is_dir)
-        if icon is None:
+        if icon is not None and not fileicons.is_alive(icon):
+            # 缓存里是「上一个 Tk 根窗口」留下的图像（切换主题后会重建根窗口），
+            # 直接填进列表会抛 image "pyimageN" doesn't exist。丢弃后重取一次。
+            fileicons.clear_cache()
+            icon = fileicons.get_file_icon(ext, is_dir)
+        if icon is None or not fileicons.is_alive(icon):
             return None
         self._icon_cache[(ext, is_dir)] = icon   # 持有引用，防止被 GC
         try:
@@ -1482,6 +1487,9 @@ def main(argv=None):
     pending = _parse_pending(argv)
     while True:
         root = tk.Tk()
+        # 新根窗口 = 新的 Tk 解释器：上一个根窗口上缓存的图标全部失效，
+        # 必须清空，否则切换主题后重建窗口会抛 image "pyimageN" doesn't exist。
+        fileicons.clear_cache()
         try:
             app = ZipForgeApp(root, pending=pending)
             root.mainloop()
