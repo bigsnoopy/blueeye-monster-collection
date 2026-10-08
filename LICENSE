@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 bigsnoopy
+Copyright (c) 2026 blueeye-monster
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+本仓库根 LICENSE 仅覆盖「本人原创/整理」的代码与文档。
+各子项目目录内如包含第三方开源组件，其许可证以该子项目自带的
+LICENSE / NOTICE 文件为准，并受其原许可证约束（详见根目录 NOTICE）。
