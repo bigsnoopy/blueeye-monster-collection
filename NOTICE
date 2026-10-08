@@ -1,0 +1,39 @@
+NOTICE — 第三方开源组件致谢
+
+维护者 / Maintainer：blueeye-monster（哔哩哔哩 @蓝眼怪）
+本仓库根 LICENSE 署名亦为 blueeye-monster。
+
+本仓库在「本人整理/改造」之外，可能包含以下第三方开源组件。
+相应权利归原作者所有，使用须遵守其各自许可证。
+
+=====================================================================
+【ZipForge】无广告 · 本地优先压缩软件（7-Zip-ZS 图形外壳）
+---------------------------------------------------------------------
+本仓库 zipforge/ 子项目依赖以下组件，均随其原许可证分发：
+
+1. 7-Zip-ZS
+   - 许可证：LGPL-2.1-or-later / BSD-3-Clause（部分文件）
+   - 版权：Igor Pavlov（7-Zip 原始）、Tino Reichardt（zstd/brotli/lz4 集成）
+   - 源码获取：https://github.com/mcmilk/7-Zip-zstd
+
+2. 7-Zip
+   - 许可证：LGPL-2.1-or-later
+   - 版权：Igor Pavlov
+   - 源码获取：https://sourceforge.net/projects/sevenzip/
+   - 注：RAR 格式仅作「只读解压」，未启用 RAR 创建，以规避 unRAR 许可限制。
+
+3. PeaZip（仅 GUI 设计参考，未复制代码）
+   - 许可证：LGPL-3.0
+   - 版权：Giorgio Tani
+
+4. NanaZip（仅交互参考，未复制代码）
+   - 许可证：MIT
+   - 版权：M2-Team and Contributors
+
+各组件原始许可证文本见 zipforge/vendor/ 目录内对应文件
+（如 7ZIP-ZS-LICENSE.txt），请勿删除。
+
+=====================================================================
+【其他子项目】
+将在添加时按同样规则在此追加致谢与许可证指向。
+=====================================================================
