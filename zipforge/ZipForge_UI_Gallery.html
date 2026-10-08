@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZipForge · 10 套风格完全不同的 UI 方案</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:#1d2330;background:#0f1115;line-height:1.55;
+  }
+  /* ---------- 顶部介绍 + 导航 ---------- */
+  header.intro{
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(120deg,#0f1115,#1a1f2e);
+    color:#eef2ff;border-bottom:1px solid #2a3145;
+    padding:18px 26px 12px;
+  }
+  header.intro h1{margin:0 0 2px;font-size:22px;letter-spacing:.5px}
+  header.intro p{margin:0;font-size:13px;color:#9fb0d0;max-width:880px}
+  nav.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  nav.chips a{
+    text-decoration:none;color:#cdd8f5;font-size:12.5px;
+    padding:6px 11px;border:1px solid #38415c;border-radius:999px;
+    background:#1c2233;transition:.15s;
+  }
+  nav.chips a:hover{background:#2a3450;color:#fff}
+  main{max-width:1180px;margin:0 auto;padding:24px 18px 80px}
+
+  /* ---------- 每个方案区块 ---------- */
+  .scheme{
+    border-radius:18px;overflow:hidden;margin:0 0 30px;
+    border:1px solid rgba(255,255,255,.08);
+    display:grid;grid-template-columns:300px 1fr;gap:0;
+  }
+  @media(max-width:880px){.scheme{grid-template-columns:1fr}}
+  .info{padding:22px 22px 26px;color:#fff}
+  .info .num{font-size:13px;font-weight:800;opacity:.7;letter-spacing:2px}
+  .info h2{margin:4px 0 6px;font-size:21px}
+  .info .tag{font-size:13px;opacity:.85;min-height:38px}
+  .info .swatches{display:flex;gap:7px;margin:14px 0}
+  .info .sw{width:30px;height:30px;border-radius:7px;border:1px solid rgba(255,255,255,.25)}
+  .info .meta{font-size:12.5px;opacity:.9;margin-top:10px}
+  .info .meta b{opacity:.7;font-weight:600;display:block;margin-bottom:2px}
+  .info .pick{
+    display:inline-block;margin-top:16px;font-size:12.5px;font-weight:700;
+    padding:7px 12px;border-radius:8px;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.3);
+  }
+  .stage{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    padding:42px 24px;min-height:430px;overflow:hidden;
+  }
+
+  /* ============================================================
+     共享的「应用窗口」结构（所有方案复用同一套 DOM，只换皮肤）
+     ============================================================ */
+  .win{
+    width:560px;max-width:94%;position:relative;z-index:3;
+    background:var(--panel);color:var(--fg);
+    border:var(--bd);border-radius:var(--radius);
+    box-shadow:var(--shadow);font-family:var(--font);overflow:hidden;
+  }
+  .titlebar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px;background:var(--title);color:var(--title-fg);
+  }
+  .brand{font-weight:800;font-size:17px;letter-spacing:.4px;display:flex;align-items:center;gap:8px}
+  .winctl span{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;
+    margin-left:5px;border-radius:5px;font-size:12px;opacity:.85}
+  .toolbar{display:flex;align-items:center;gap:8px;padding:11px 14px;flex-wrap:wrap}
+  .btn{
+    padding:7px 12px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;
+    background:var(--btn);color:var(--btn-fg);border:var(--btn-bd);
+    border-radius:var(--btn-radius);box-shadow:var(--btn-shadow);
+  }
+  .spacer{flex:1}
+  .fmt,.lvl{padding:6px 10px;font-size:12px;background:var(--btn);color:var(--btn-fg);
+    border:var(--btn-bd);border-radius:var(--btn-radius)}
+  .pathbar{padding:9px 14px;font-size:13px;background:var(--pathbg,transparent);
+    border-top:var(--bd);border-bottom:var(--bd)}
+  .list{font-size:13px}
+  .colhead,.row{display:grid;grid-template-columns:1.7fr .8fr .8fr 1fr;gap:6px;padding:8px 14px}
+  .colhead{font-weight:700;opacity:.8;border-bottom:var(--bd)}
+  .row{border-bottom:1px solid var(--rowline,rgba(128,128,128,.18))}
+  .row.sel{background:var(--selbg,rgba(128,128,128,.18))}
+  .row .name{display:flex;align-items:center;gap:7px}
+  .statusbar{display:flex;gap:20px;padding:9px 14px;font-size:12px;opacity:.85;border-top:var(--bd)}
+  .ctxmenu{
+    position:absolute;left:118px;top:158px;min-width:206px;z-index:9;padding:6px;
+    background:var(--panel);border:var(--btn-bd);border-radius:var(--btn-radius);
+    box-shadow:var(--shadow);
+  }
+  .ctx-title{font-weight:800;font-size:12px;padding:4px 9px;opacity:.65;letter-spacing:.5px}
+  .ctx-item{padding:6px 10px;font-size:13px;border-radius:6px}
+  .ctx-item:hover{background:var(--accent);color:var(--title-fg)}
+  .ctx-sep{height:1px;background:var(--rowline,rgba(128,128,128,.25));margin:4px 2px}
+
+  /* ============================================================
+     方案 0 — 经典 Classic（程序默认外观，亦可在此切换）
+     ============================================================ */
+  .s0{background:#dfe4ec}
+  .s0{--panel:#ffffff;--fg:#1d2330;--accent:#2f6fdb;--title:#ffffff;--title-fg:#1d2330;
+      --bd:1px solid #d0d5dd;--radius:10px;
+      --shadow:0 10px 28px rgba(20,30,60,.18);
+      --btn:#ffffff;--btn-fg:#1d2330;--btn-bd:1px solid #c4ccd8;--btn-radius:8px;
+      --btn-shadow:0 1px 2px rgba(20,30,60,.12);
+      --font:"Segoe UI",system-ui,sans-serif;--pathbg:#f4f6fa;--selbg:rgba(47,111,219,.14);
+      --rowline:rgba(29,35,48,.12)}
+
+  /* ============================================================
+     方案 1 — 软拟物 Neumorphism
+     ============================================================ */
+  .s1{background:#e0e5ec}
+  .s1{--panel:#e0e5ec;--fg:#5b6472;--accent:#6d7cff;--title:#e0e5ec;--title-fg:#7a8499;
+      --bd:none;--radius:22px;
+      --shadow:9px 9px 20px #b8bcc2,-9px -9px 20px #ffffff;
+      --btn:#e0e5ec;--btn-fg:#6b7689;--btn-bd:none;--btn-radius:15px;
+      --btn-shadow:6px 6px 12px #bcc1c7,-6px -6px 12px #ffffff;
+      --font:"Segoe UI",system-ui,sans-serif;--pathbg:#e0e5ec;--selbg:rgba(109,124,255,.12);
+      --rowline:rgba(91,100,114,.12)}
+  .s1 .winctl span{background:#e0e5ec;box-shadow:inset 2px 2px 4px #b8bcc2,inset -2px -2px 4px #fff}
+  .s1 .ctx-item:hover{color:#fff}
+
+  /* ============================================================
+     方案 2 — 野兽派 Brutalism
+     ============================================================ */
+  .s2{background:#ffffff}
+  .s2{--panel:#ffffff;--fg:#111;--accent:#111;--title:#111;--title-fg:#fff;
+      --bd:3px solid #111;--radius:0;
+      --shadow:12px 12px 0 #111;
+      --btn:#fff;--btn-fg:#111;--btn-bd:3px solid #111;--btn-radius:0;
+      --btn-shadow:5px 5px 0 #111;
+      --font:"Courier New",monospace;--pathbg:#fff;--selbg:rgba(17,17,17,.08);--rowline:#111}
+  .s2 .colhead{text-transform:uppercase;letter-spacing:1px}
+
+  /* ============================================================
+     方案 3 — 玻璃拟态 Glassmorphism
+     ============================================================ */
+  .s3{background:linear-gradient(135deg,#6a11cb 0%,#2575fc 100%)}
+  .s3{--panel:rgba(255,255,255,.14);--fg:#fff;--accent:#fff;--title:rgba(255,255,255,.2);
+      --title-fg:#fff;--bd:1px solid rgba(255,255,255,.4);--radius:18px;
+      --shadow:0 8px 32px rgba(0,0,0,.28);
+      --btn:rgba(255,255,255,.2);--btn-fg:#fff;--btn-bd:1px solid rgba(255,255,255,.5);
+      --btn-radius:12px;--btn-shadow:none;
+      --font:"Segoe UI",system-ui,sans-serif;--pathbg:rgba(255,255,255,.1);
+      --selbg:rgba(255,255,255,.22);--rowline:rgba(255,255,255,.25)}
+  .s3 .win,.s3 .btn,.s3 .ctxmenu{backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .s3 .ctx-item:hover{color:#6a11cb}
+
+  /* ============================================================
+     方案 4 — 复古绿屏终端 Retro Terminal
+     ============================================================ */
+  .s4{background:#020a02}
+  .s4{--panel:#020a02;--fg:#33ff66;--accent:#33ff66;--title:#0a1a0a;--title-fg:#33ff66;
+      --bd:1px solid #1f7a3a;--radius:0;--shadow:0 0 24px rgba(51,255,102,.25);
+      --btn:#021002;--btn-fg:#33ff66;--btn-bd:1px solid #2a8a4a;--btn-radius:0;--btn-shadow:none;
+      --font:"Consolas","Courier New",monospace;--pathbg:#041204;--selbg:rgba(51,255,102,.12);
+      --rowline:rgba(51,255,102,.22)}
+  .s4 .win{text-shadow:0 0 6px rgba(51,255,102,.7)}
+  .s4 .stage::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px)}
+
+  /* ============================================================
+     方案 5 — 赛博朋克霓虹 Cyberpunk
+     ============================================================ */
+  .s5{background:#070710}
+  .s5{--panel:#0c0c1a;--fg:#cfe9ff;--accent:#ff2bd6;--title:#15001f;--title-fg:#2bf0ff;
+      --bd:1px solid #ff2bd6;--radius:3px;--shadow:0 0 22px rgba(255,43,214,.5);
+      --btn:#15001f;--btn-fg:#2bf0ff;--btn-bd:1px solid #ff2bd6;--btn-radius:3px;
+      --btn-shadow:0 0 12px rgba(43,240,255,.4);
+      --font:"Segoe UI",system-ui,sans-serif;--pathbg:#0a0a16;--selbg:rgba(255,43,214,.14);
+      --rowline:rgba(43,240,255,.18)}
+  .s5 .win{clip-path:polygon(0 12px,12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
+  .s5 .brand{text-shadow:0 0 10px #2bf0ff}
+  .s5 .stage::before{content:"";position:absolute;inset:0;z-index:0;opacity:.6;
+    background-image:linear-gradient(rgba(43,240,255,.10) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,43,214,.10) 1px,transparent 1px);
+    background-size:30px 30px}
+
+  /* ============================================================
+     方案 6 — 瑞士极简 Swiss / International
+     ============================================================ */
+  .s6{background:#ffffff}
+  .s6{--panel:#fff;--fg:#111;--accent:#e4002b;--title:#fff;--title-fg:#111;
+      --bd:1px solid #111;--radius:0;--shadow:none;
+      --btn:#fff;--btn-fg:#111;--btn-bd:1px solid #111;--btn-radius:0;--btn-shadow:none;
+      --font:"Helvetica Neue",Arial,sans-serif;--pathbg:#fff;--selbg:rgba(228,0,43,.08);
+      --rowline:#111}
+  .s6 .brand{font-size:26px;font-weight:900;letter-spacing:-.5px}
+  .s6 .brand .dot{color:#e4002b}
+  .s6 .titlebar{border-bottom:3px solid #111}
+  .s6 .colhead{text-transform:uppercase;letter-spacing:1.5px;font-size:11px}
+  .s6 .btn:first-child{background:#e4002b;color:#fff;border-color:#e4002b}
+
+  /* ============================================================
+     方案 7 — 拟物写实 Skeuomorphism
+     ============================================================ */
+  .s7{background:radial-gradient(circle at 30% 20%,#3a2818,#1c1209)}
+  .s7{--panel:linear-gradient(#3a2818,#241608);--fg:#f3e6d0;--accent:#caa15a;
+      --title:linear-gradient(#d8b06a,#8a6a32);--title-fg:#2b1d12;
+      --bd:2px solid #160d05;--radius:11px;
+      --shadow:inset 0 2px 6px rgba(0,0,0,.55),0 14px 30px rgba(0,0,0,.55);
+      --btn:linear-gradient(#f0d9a8,#caa15a);--btn-fg:#3a2818;--btn-bd:1px solid #6b4f24;
+      --btn-radius:9px;--btn-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 7px rgba(0,0,0,.45);
+      --font:"Georgia",serif;--pathbg:rgba(0,0,0,.25);--selbg:rgba(202,161,90,.22);
+      --rowline:rgba(243,230,208,.15)}
+  .s7 .win{outline:1px dashed rgba(243,230,208,.25);outline-offset:-7px}
+  .s7 .btn{font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+
+  /* ============================================================
+     方案 8 — 黏土风 Claymorphism
+     ============================================================ */
+  .s8{background:#f3f0ff}
+  .s8{--panel:#f3f0ff;--fg:#5b4b8a;--accent:#8a6cff;--title:#f3f0ff;--title-fg:#7a5cff;
+      --bd:none;--radius:34px;
+      --shadow:12px 12px 26px #d6cdf2,-12px -12px 26px #ffffff;
+      --btn:#e9e2ff;--btn-fg:#6a4cff;--btn-bd:none;--btn-radius:24px;
+      --btn-shadow:8px 8px 18px #d2c9f0,-8px -8px 18px #ffffff;
+      --font:"Quicksand","Segoe UI",system-ui,sans-serif;--pathbg:#f3f0ff;
+      --selbg:rgba(138,108,255,.16);--rowline:rgba(91,75,138,.12)}
+  .s8 .winctl span{background:#e9e2ff;box-shadow:3px 3px 7px #d2c9f0,-3px -3px 7px #fff}
+  .s8 .ctx-item:hover{color:#fff}
+
+  /* ============================================================
+     方案 9 — 孟菲斯 Memphis
+     ============================================================ */
+  .s9{background:#fdf6e3}
+  .s9{--panel:#fff;--fg:#111;--accent:#ff3b3b;--title:#111;--title-fg:#fff;
+      --bd:3px solid #111;--radius:0;--shadow:8px 8px 0 #ffd23b;
+      --btn:#fff;--btn-fg:#111;--btn-bd:3px solid #111;--btn-radius:0;--btn-shadow:4px 4px 0 #2b6bff;
+      --font:"Trebuchet MS",sans-serif;--pathbg:#fff;--selbg:rgba(255,59,59,.1);--rowline:#111}
+  .s9 .stage::before{content:"";position:absolute;width:84px;height:84px;border-radius:50%;
+    background:#ff3b3b;top:20px;right:46px;box-shadow:18px 22px 0 #2b6bff,-12px 64px 0 #ffd23b;
+    opacity:.45;z-index:0}
+  .s9 .stage::after{content:"";position:absolute;width:0;height:0;
+    border-left:38px solid transparent;border-right:38px solid transparent;
+    border-bottom:66px solid #2b6bff;bottom:34px;left:60px;opacity:.4;z-index:0}
+
+  /* ============================================================
+     方案 10 — 蒸汽波 Vaporwave
+     ============================================================ */
+  .s10{background:linear-gradient(180deg,#ff6ad5 0%,#c774e8 38%,#5b6ee8 68%,#26c6da 100%)}
+  .s10{--panel:rgba(40,10,60,.5);--fg:#fff;--accent:#ff71ce;--title:rgba(255,113,206,.32);
+      --title-fg:#fff;--bd:1px solid #ff71ce;--radius:6px;
+      --shadow:0 0 26px rgba(255,113,206,.55);
+      --btn:rgba(255,113,206,.28);--btn-fg:#fff;--btn-bd:1px solid #01cdfe;--btn-radius:4px;
+      --btn-shadow:0 0 14px rgba(1,205,254,.5);
+      --font:"Segoe UI",system-ui,sans-serif;--pathbg:rgba(255,255,255,.08);
+      --selbg:rgba(1,205,254,.22);--rowline:rgba(255,255,255,.3)}
+  .s10 .win,.s10 .btn,.s10 .ctxmenu{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .s10 .brand{text-shadow:0 0 10px #01cdfe}
+  .s10 .ctx-item:hover{color:#5b6ee8}
+  .s10 .stage::before{content:"";position:absolute;left:50%;top:32%;transform:translate(-50%,-50%);
+    width:230px;height:230px;border-radius:50%;background:linear-gradient(#fff36b,#ff6ad5);
+    box-shadow:0 0 90px rgba(255,106,213,.6);z-index:0;
+    -webkit-mask:repeating-linear-gradient(#000 0 11px,transparent 11px 19px);
+    mask:repeating-linear-gradient(#000 0 11px,transparent 11px 19px)}
+  .s10 .stage::after{content:"";position:absolute;left:-10%;right:-10%;bottom:0;height:46%;z-index:0;
+    background:repeating-linear-gradient(90deg,rgba(1,205,254,.55) 0 1px,transparent 1px 42px),
+      repeating-linear-gradient(0deg,rgba(1,205,254,.55) 0 1px,transparent 1px 42px);
+    transform:perspective(320px) rotateX(62deg);transform-origin:bottom}
+
+  footer{text-align:center;color:#7a86a3;font-size:12.5px;padding:10px}
+  footer b{color:#aab6d6}
+</style>
+</head>
+<body>
+<header class="intro">
+  <h1>ZipForge · 10 套风格完全不同的 UI 方案</h1>
+  <p>同一套功能（标题栏 / 工具栏 / 文件列表 / 状态栏 / 7-Zip 式右键级联菜单）在 10 种彻底不同的视觉语言下长什么样。挑一个你喜欢的编号告诉我，我把它做成 ZipForge 真正的 GUI 主题。</p>
+  <nav class="chips">
+    <a href="#s0">00 经典</a>
+    <a href="#s1">01 软拟物</a>
+    <a href="#s2">02 野兽派</a>
+    <a href="#s3">03 玻璃拟态</a>
+    <a href="#s4">04 绿屏终端</a>
+    <a href="#s5">05 赛博霓虹</a>
+    <a href="#s6">06 瑞士极简</a>
+    <a href="#s7">07 拟物写实</a>
+    <a href="#s8">08 黏土风</a>
+    <a href="#s9">09 孟菲斯</a>
+    <a href="#s10">10 蒸汽波</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- 00 -->
+  <section class="scheme s0" id="s0">
+    <div class="info">
+      <div class="num">SCHEME 00</div>
+      <h2>经典 Classic</h2>
+      <div class="tag">程序默认外观：中性浅色、蓝色强调、圆角卡片。干净克制，像一台正经的生产力工具。</div>
+      <div class="swatches"><span class="sw" style="background:#eceff4"></span><span class="sw" style="background:#2f6fdb"></span><span class="sw" style="background:#ffffff"></span><span class="sw" style="background:#d0d5dd"></span></div>
+      <div class="meta"><b>特立独行点</b>不抢戏、可读性强、长时间使用不疲劳。</div>
+      <div class="meta"><b>最适配</b>所有人、不想折腾、追求稳定的默认选择。</div>
+      <div class="pick">👉 选这个请回我「00」或「经典」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 01 -->
+  <section class="scheme s1" id="s1">
+    <div class="info">
+      <div class="num">SCHEME 01</div>
+      <h2>软拟物 Neumorphism</h2>
+      <div class="tag">没有边框、没有硬阴影，所有控件像从背景里「长」出来，靠光影浮起。安静、治愈。</div>
+      <div class="swatches"><span class="sw" style="background:#e0e5ec"></span><span class="sw" style="background:#6d7cff"></span><span class="sw" style="background:#b8bcc2"></span><span class="sw" style="background:#ffffff"></span></div>
+      <div class="meta"><b>特立独行点</b>彻底抛弃线框，用双向柔和阴影制造体积感。</div>
+      <div class="meta"><b>最适配</b>个人工具、需要长时间面对、追求「不抢戏」的界面。</div>
+      <div class="pick">👉 选这个请回我「01」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 02 -->
+  <section class="scheme s2" id="s2">
+    <div class="info">
+      <div class="num">SCHEME 02</div>
+      <h2>野兽派 Brutalism</h2>
+      <div class="tag">粗黑描边、硬投影、零圆角、等宽字体。把「结构」和「原始」直接怼到你脸上，毫不讨好。</div>
+      <div class="swatches"><span class="sw" style="background:#ffffff"></span><span class="sw" style="background:#111111"></span><span class="sw" style="background:#111"></span><span class="sw" style="background:#fff"></span></div>
+      <div class="meta"><b>特立独行点</b>反精致：故意粗糙、暴露骨架，所有按钮都有实心硬阴影。</div>
+      <div class="meta"><b>最适配</b>想显得硬核、工程化、不修边幅的工具感。</div>
+      <div class="pick">👉 选这个请回我「02」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 03 -->
+  <section class="scheme s3" id="s3">
+    <div class="info">
+      <div class="num">SCHEME 03</div>
+      <h2>玻璃拟态 Glassmorphism</h2>
+      <div class="tag">半透明磨砂面板浮在彩色渐变之上，背后内容隐约透出。干净、现代、有空气感。</div>
+      <div class="swatches"><span class="sw" style="background:#6a11cb"></span><span class="sw" style="background:#2575fc"></span><span class="sw" style="background:rgba(255,255,255,.4)"></span><span class="sw" style="background:#ffffff"></span></div>
+      <div class="meta"><b>特立独行点</b>真正的毛玻璃模糊（backdrop-filter），层叠通透。</div>
+      <div class="meta"><b>最适配</b>想看起来「高级」、轻量、像现代 Web 应用。</div>
+      <div class="pick">👉 选这个请回我「03」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 04 -->
+  <section class="scheme s4" id="s4">
+    <div class="info">
+      <div class="num">SCHEME 04</div>
+      <h2>复古绿屏终端 Retro Terminal</h2>
+      <div class="tag">黑底磷光绿、等宽字、扫描线。像在 DOS / 老式监视器里操作一台压缩终端。</div>
+      <div class="swatches"><span class="sw" style="background:#020a02"></span><span class="sw" style="background:#33ff66"></span><span class="sw" style="background:#0a1a0a"></span><span class="sw" style="background:#1f7a3a"></span></div>
+      <div class="meta"><b>特立独行点</b>全文本化 UI + CRT 扫描线，情怀拉满、信息密度高。</div>
+      <div class="meta"><b>最适配</b>极客向、命令行爱好者、复古科技美学。</div>
+      <div class="pick">👉 选这个请回我「04」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 05 -->
+  <section class="scheme s5" id="s5">
+    <div class="info">
+      <div class="num">SCHEME 05</div>
+      <h2>赛博朋克霓虹 Cyberpunk</h2>
+      <div class="tag">近黑底 + 品红 / 青色霓虹辉光 + 切角 + 网格。未来废土控制台的压迫感。</div>
+      <div class="swatches"><span class="sw" style="background:#070710"></span><span class="sw" style="background:#ff2bd6"></span><span class="sw" style="background:#2bf0ff"></span><span class="sw" style="background:#15001f"></span></div>
+      <div class="meta"><b>特立独行点</b>霓虹发光 + 斜切窗口角 + 背景网格，强烈科幻辨识度。</div>
+      <div class="meta"><b>最适配</b>想让工具显得酷、有攻击性、年轻化。</div>
+      <div class="pick">👉 选这个请回我「05」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 06 -->
+  <section class="scheme s6" id="s6">
+    <div class="info">
+      <div class="num">SCHEME 06</div>
+      <h2>瑞士极简 Swiss</h2>
+      <div class="tag">纯白底、黑字、唯一一抹红、严格网格与大量留白。设计师味的克制与秩序。</div>
+      <div class="swatches"><span class="sw" style="background:#ffffff"></span><span class="sw" style="background:#111111"></span><span class="sw" style="background:#e4002b"></span><span class="sw" style="background:#fff"></span></div>
+      <div class="meta"><b>特立独行点</b>国际主义排版：靠对齐、留白、字号对比，而非装饰。</div>
+      <div class="meta"><b>最适配</b>专业、可信、不喧哗的品牌形象。</div>
+      <div class="pick">👉 选这个请回我「06」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 07 -->
+  <section class="scheme s7" id="s7">
+    <div class="info">
+      <div class="num">SCHEME 07</div>
+      <h2>拟物写实 Skeuomorphism</h2>
+      <div class="tag">皮革木纹面板 + 高光玻璃按钮 + 缝线描边。iOS 7 之前的「真实材质」审美。</div>
+      <div class="swatches"><span class="sw" style="background:#3a2818"></span><span class="sw" style="background:#caa15a"></span><span class="sw" style="background:#f0d9a8"></span><span class="sw" style="background:#241608"></span></div>
+      <div class="meta"><b>特立独行点</b>用渐变和高光伪造真实材质触感，复古而厚重。</div>
+      <div class="meta"><b>最适配</b>温暖、有质感、偏传统的桌面软件气质。</div>
+      <div class="pick">👉 选这个请回我「07」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 08 -->
+  <section class="scheme s8" id="s8">
+    <div class="info">
+      <div class="num">SCHEME 08</div>
+      <h2>黏土风 Claymorphism</h2>
+      <div class="tag">大圆角、粉彩、充气般的立体按钮。像捏出来的软糖，友善又俏皮。</div>
+      <div class="swatches"><span class="sw" style="background:#f3f0ff"></span><span class="sw" style="background:#8a6cff"></span><span class="sw" style="background:#e9e2ff"></span><span class="sw" style="background:#d6cdf2"></span></div>
+      <div class="meta"><b>特立独行点</b> puff 式双重柔影，控件像可按压的橡皮泥。</div>
+      <div class="meta"><b>最适配</b>轻松、亲切、面向非技术用户的友好感。</div>
+      <div class="pick">👉 选这个请回我「08」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 09 -->
+  <section class="scheme s9" id="s9">
+    <div class="info">
+      <div class="num">SCHEME 09</div>
+      <h2>孟菲斯 Memphis</h2>
+      <div class="tag">原色块、圆点、三角、波浪线随意散布。80 年代意大利孟菲斯派的快乐混沌。</div>
+      <div class="swatches"><span class="sw" style="background:#fdf6e3"></span><span class="sw" style="background:#ff3b3b"></span><span class="sw" style="background:#2b6bff"></span><span class="sw" style="background:#ffd23b"></span></div>
+      <div class="meta"><b>特立独行点</b>故意「不整齐」的几何装饰，活泼到有点叛逆。</div>
+      <div class="meta"><b>最适配</b>想突出个性、创意、年轻好玩的品牌。</div>
+      <div class="pick">👉 选这个请回我「09」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+  <!-- 10 -->
+  <section class="scheme s10" id="s10">
+    <div class="info">
+      <div class="num">SCHEME 10</div>
+      <h2>蒸汽波 Vaporwave</h2>
+      <div class="tag">粉紫青渐变、复古落日、透视网格地板、铬色霓虹字。A E S T H E T I C。</div>
+      <div class="swatches"><span class="sw" style="background:#ff6ad5"></span><span class="sw" style="background:#26c6da"></span><span class="sw" style="background:#ff71ce"></span><span class="sw" style="background:#5b6ee8"></span></div>
+      <div class="meta"><b>特立独行点</b>落日 + 网格地平线 + 霓虹，强烈 80 年代网络怀旧。</div>
+      <div class="meta"><b>最适配</b>想玩梗、有网感、瞄准年轻互联网审美。</div>
+      <div class="pick">👉 选这个请回我「10」</div>
+    </div>
+    <div class="stage"><div class="win"></div></div>
+  </section>
+
+</main>
+
+<footer>
+  以上 10 套均为 <b>静态视觉预览</b>（同一功能结构换肤）。告诉我编号即可落地为真实 GUI 主题 —— 也可混搭（例如「瑞士极简的排版 + 赛博霓虹的强调色」）。
+</footer>
+
+<script>
+  // 共享的「应用窗口」DOM 模板：所有方案复用，只换 CSS 变量
+  const APP = `
+    <div class="titlebar">
+      <div class="brand"><span>◆</span><span>ZipForge</span></div>
+      <div class="winctl"><span>—</span><span>▢</span><span>✕</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn">＋ 添加</button>
+      <button class="btn">⤓ 解压</button>
+      <button class="btn">✓ 测试</button>
+      <button class="btn">▦ 新建</button>
+      <button class="btn">✉ 邮件</button>
+      <span class="spacer"></span>
+      <div class="fmt">格式 7z ▾</div>
+      <div class="lvl">级别 标准 ▾</div>
+    </div>
+    <div class="pathbar">📁 D:\\资料\\2026\\项目  ▾</div>
+    <div class="list">
+      <div class="colhead"><span>名称</span><span>大小</span><span>类型</span><span>修改时间</span></div>
+      <div class="row sel"><span class="name">📁 设计稿</span><span>—</span><span>文件夹</span><span>10-08 14:32</span></div>
+      <div class="row"><span class="name">📄 报价表V2.xlsx</span><span>86 KB</span><span>Excel</span><span>10-08 16:20</span></div>
+      <div class="row"><span class="name">📄 噪声测试数据.csv</span><span>1.2 MB</span><span>CSV</span><span>10-08 11:05</span></div>
+      <div class="row"><span class="name">🗜 report.7z</span><span>4.8 MB</span><span>7z 归档</span><span>10-07 22:10</span></div>
+      <div class="row"><span class="name">🖼 预览图.png</span><span>320 KB</span><span>图片</span><span>10-08 09:40</span></div>
+      <div class="row"><span class="name">📄 说明书.docx</span><span>54 KB</span><span>Word</span><span>10-06 18:00</span></div>
+    </div>
+    <div class="statusbar"><span>6 个对象</span><span>已选 1</span><span>就绪</span></div>
+    <div class="ctxmenu">
+      <div class="ctx-title">ZipForge</div>
+      <div class="ctx-item">解压到当前文件夹</div>
+      <div class="ctx-item">解压到同名文件夹</div>
+      <div class="ctx-item">解压到…</div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-item">添加到压缩包…</div>
+      <div class="ctx-item">压缩并发送邮件…</div>
+      <div class="ctx-item">快速压缩为 7z</div>
+      <div class="ctx-item">快速压缩为 ZIP</div>
+      <div class="ctx-sep"></div>
+      <div class="ctx-item">CRC-32</div>
+      <div class="ctx-item">SHA-256</div>
+      <div class="ctx-item">全部校验值…</div>
+    </div>`;
+  document.querySelectorAll('.stage .win').forEach(w=>{ w.innerHTML = APP; });
+</script>
+</body>
+</html>
